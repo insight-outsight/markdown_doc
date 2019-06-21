@@ -8,18 +8,33 @@ Java是一种基于Java虚拟机（JVM）、跨平台、面向对象的编程语
 ![avatar](https://s2.ax1x.com/2019/06/19/VO3VX9.png)
 图1  Java程序开发流程
 
-描述开发流程，分3阶段，HelloWorld,import,maven dependency
+下面将通过实际的操作来演示开发流程，分三部分：
+
+1. 如何编写一个Java程序
+
+要运行一个Java程序，必须至少编写一个Java程序文件(.java文件)，这个文件必须含有一个固定格式的main方法，格式为:
+
+```java
+public static void main(String[] args) {
+  //......
+}
+```
+
+
+
+1. 如何在Java程序中引用已有的本地软件包
+2. 如何在Java程序中引用远程资源库中的软件包
 
 
 
 ### 1.2 Java虚拟机
 
-Java虚拟机（以下简称为JVM）是一个虚拟的计算机设备，它屏蔽了不同操作系统的差异，使同样的代码（字节码）在不同的操作系统上都能运行，这只需要在不同类型的操作系统上安装相应的JVM。
+Java虚拟机（以下简称为JVM）是一个虚拟的计算机设备，它屏蔽了不同操作系统的差异，使同样的代码（字节码）在不同的操作系统上都能运行，这只需要在不同类型的操作系统上安装相应的JVM即可实现。
 
 #### 1.2.1 支持多种编程语言
 Java语言的程序编译成字节码后就可以运行在JVM上，但JVM本身却不并只可以运行Java语言的程序编写的程序，一切能编译成标准Java字节码的程序语言的代码都可以在JVM上运行，例如Scala、Kotlin等，JVM只面向字节码，与语言没有关联。
 
-![avatar](https://s2.ax1x.com/2019/06/20/VvuzLR.png)
+![avatar](https://s2.ax1x.com/2019/06/20/VvuzLR.md.png)
 
 图2 Java平台多编程语言支持示意图
 
@@ -36,7 +51,7 @@ Java语言的程序编译成字节码后就可以运行在JVM上，但JVM本身�
 
 Java内存模型（JMM）规定了所有的变量都存储在主内存中，每条线程还有自己的工作内存（又叫本地内存），线程的工作内存中保存了该线程中是用到的变量的主内存副本拷贝，线程对变量的所有操作都必须在工作内存中进行，而不能直接读写主内存。不同的线程之间也无法直接访问对方工作内存中的变量，线程间变量的传递均需要自己的工作内存和主存之间进行数据同步进行。
 而JMM就作用于工作内存和主存之间数据同步过程。他规定了如何做数据同步以及什么时候做数据同步。工作内存是JMM的一个抽象概念，它对应的具体存储空间（存储介质、地址）是不确定的，涉及到CPU缓存，写缓冲区，寄存器以及其他的硬件和编译器优化等方面。
-![avatar](https://s2.ax1x.com/2019/06/20/VvlBff.md.png)
+![avatar](https://s2.ax1x.com/2019/06/21/VziDhj.md.png)
 图4 JVM内存模型
 
 ###1.3 Java语言平台体系结构
@@ -227,7 +242,7 @@ public class CallStaticMethodDemo {
 
 #####1.5.2.4 类的继承
 
-Java中类的继承只允许单一继承，即每个类有且只有一个父类，要么显式指明父类，要么自动继承一个默认父类——Object类，Object类定义了所有类对象都应该具备的最基本的一些方法，例如toString(),hashCode()。
+Java中类的继承只允许单一继承，即每个类有且只有一个父类，要么显式指明父类，否则将自动隐式继承一个父类——Object类，Object类是Java中所有类的父类，可以称它为根类，它定义了所有类对象都应该具备的最基本的一些方法，例如toString(), hashCode()。
 Java中类的继承是可传递的，即一个继承的父类的属性和方法可以传递给继承它的子类。
 
 #####1.5.2.5 类的多态
@@ -292,7 +307,7 @@ Java中有8种基本数据类型（primitive types）,每种基本类型都有�
 | float(Float) | 4 | 0.0f | -2^31-2^31-1 | float f=10.0F |
 | double(Double) | 8 | 0.0d | -2^63-2^63-1 | double d=10.0; |
 | boolean(Boolean) | 4/1 | false | true/false | boolean flag=true; |
-表2 Java基本数据类型
+表3 Java基本数据类型
 <br>
 说明：
 
@@ -302,12 +317,71 @@ Java中有8种基本数据类型（primitive types）,每种基本类型都有�
 - 从Java5开始，基本类型与其及对应对象类型之间可以实现自动包装/解包（Wrapper/UnWrapper)，即实现在编程中通用。
 - 从Java7开始，可以加前缀0b来代表二进制数，例如：byte b = 0b1000;表示b的数值是8。数字字面量可以加上下划线提高易读性，例如：int i = 200_0000;代表i的数值是200万。
 - 多线程应用场景下，为保证long和double类型变量读写都是原子操作，应使用volatile关键字修饰变量。
+####1.5.4 运算符及运算符的优先级
+Java语言提供了一套丰富的运算符用于各种类型的数值计算。按类型可分为以下几类：
 
-####1.5.4 程序流控制
+- 算术运算符
+
+```
++, -, *,  /, %, ++, --
+```
+
+- 关系运算符
+
+```
+>, <, >=, <=, ==, !=
+```
+
+- 位运算符
+
+```
+&, |, ^, ~, <<, >>, >>>
+```
+
+- 逻辑运算符
+
+```
+&&, ||, !
+```
+
+- 赋值运算符
+
+```
+=, +=, -=, *=, /=等
+```
+
+- 其他运算符
+
+```
+?:, instanceof, ., (), []
+```
+
+
+
+实际编程中经常会遇到多个运算符一同使用的情形，例如int value = 3*5-10/2+3，那么这时各个运算符优先级如何确定呢，Java中运算符的优先级排列如表4所示，其中排在上面的优先级高于下面的。
+
+![avatar](https://s2.ax1x.com/2019/06/21/VzM6gO.md.png)
+
+表4 Java运算符优先级
+
+
+
+注：结合是指运算符与相邻运算数（运算符）结合的顺序，通常都是从左到右。从右向左的运算符最典型的就是负号，例如3+-4，表示3加-4，即符号首先和运算符右侧的内容结合。
+
+其实在实际的开发中，不需要去记忆运算符的优先级别，也不要刻意使用运算符的优先级别，对于不清楚优先级的地方可直接使用小括号显示指明优先级，示例代码：      
+
+```java
+int value = 3*5-10/2+3;
+int value = (3*5)-(10/2)+3; //这样更直观
+```
+
+这样做便于代码编写，也便于代码的阅读和维护。
+
+####1.5.5 程序流控制
 
 Java中的程序控制语法与C/C++等语言基本一致，主要有包括 **if-else，for，continue，break，return，while，do-while**等关键字。下面逐一介绍：
 
-####1.5.4.1 if-else
+####1.5.5.1 if-else
 
 ```java
     public static void main(String[] args) {
@@ -341,7 +415,7 @@ Java中的程序控制语法与C/C++等语言基本一致，主要有包括 **if
 a 不大于 b
 a 小于 b
 ```
-####1.5.4.2 for、continue、break、return
+####1.5.5.2 for、continue、break、return
 
 for用作循环，它有两种形式，一种形式是：
 
@@ -433,7 +507,7 @@ break test finish
 0
 ```
 
-####1.5.4.3 while、do-while
+####1.5.5.3 while、do-while
 
 whille、do-while循环与for循环类似，只不过它只需要一个循环条件，例如
 
@@ -473,11 +547,193 @@ whille、do-while循环与for循环类似，只不过它只需要一个循环条
 
 
 
-####1.5.5 异常
+####1.5.6 异常
 
-####1.5.6 泛型
+Java中的异常（Exception）用于标记程序中可能发生的一些错误，异常可分为两大类，分别叫运行时异常（RuntimeException）和编译时异常(Checked Exception)。
 
-####1.5.7 多线程
+它们的不再之处在于，运行时异常不一定要在代码中处理，而编译时异常则是必须要的。
+
+
+#####1.5.6.1 运行时异常
+下面是一个运行时异常的例子：
+
+```java
+public class ExceptionDemo {
+
+    public static void main(String[] args) {
+      
+        System.out.println(toLowerCaseWarpper("Abc"));
+        System.out.println(toLowerCaseWarpper(null));
+
+    }
+  
+    /**
+     * 将参数字符串中的大写字母全部转为小写
+     * @param str 待转换字符串
+     * @return 转换后的结果
+     */
+    public static String toLowerCaseWarpper(String str) {
+        if (str == null) {
+            throw new NullPointerException("字符串参数为空。");
+        }
+        return str.toLowerCase();
+    }
+  
+}
+    
+```
+
+上面代码的执行结果是打印以下内容：
+
+```
+abc
+Exception in thread "main" java.lang.NullPointerException: 字符串参数为空。
+	at com.mfw.cc.course1.demo.ExceptionDemo.toLowerCaseWarpper(ExceptionDemo.java:23)
+	at com.mfw.cc.course1.demo.ExceptionDemo.main(ExceptionDemo.java:11)
+```
+
+当第一次调用toLowerCaseWarpper方法时一切正常，第二次调用时，由于传入的参数主空值（null），从而引发了NullPointerException异常的抛出（throw）。NullPointerException是一个运行时异常，在调用可能抛出它的方法时，如果不想处理或者无法处理这种异常，可以不用catch处理。
+#####1.5.6.2 编译时异常
+与运行时异常不同的是，调用一个会抛出编译时异常的方法的时，如果没有对异常进行处理，那么编译器就会报错。例如，以下代码：
+
+```java
+    public static byte[] getUTF8Bytes(String str) {
+       //编译时下面这行会报错：Unhandled exception type UnsupportedEncodingException
+        byte[] bytes =  str.getBytes("UTF-8");
+        return bytes;
+    }
+```
+
+由于getBytes()方法可能会抛出异常UnsupportedEncodingException，UnsupportedEncodingException是一个编译时异常，而代码中并没有对其处理，因而编译会失败。
+
+解决方式有两种，一种是在调用它的方法签名后声明throws异常列表，表示程序知道可能会发生异常，但不处理，只作传递给上层调用者。示例代码如下：
+
+```java
+    public static byte[] getUTF8Bytes(String str) throws UnsupportedEncodingException {
+        byte[] bytes =  str.getBytes("UTF-8");
+        return bytes;
+    }
+```
+
+另一种处理方式是，把调用的地方放进try-catch异常捕获代码块进行处理。示例代码如下：
+
+```java
+    public static byte[] getUTF8Bytes(String str) {
+        byte[] bytes = null;
+        try {
+            bytes = str.getBytes("UTF-8");
+        } catch (UnsupportedEncodingException e) {
+          //捕获到异常后进行相应处理，在这里是打印出异常堆栈
+            e.printStackTrace();
+        }
+        return bytes;
+    }
+```
+
+
+
+####1.5.7 泛型
+
+泛型（Generic type 或者 generics）是从JDK 1.5开始支持的一个功能特性，泛型是对对象类型的参数化。泛型可用于类、接口和方法的定义中，分别被称为泛型类、泛型接口、泛型方法。
+
+先来看一个泛型类的例子，
+
+```java
+
+    public static void main(String[] args) {
+
+        List list = new ArrayList();
+        list.add("string1");
+        list.add("string2");
+        list.add(1609);
+        
+        for(int i = 0; i < list.size(); i++) {
+            String str = (String) list.get(i);
+            System.out.println(str);
+        }
+        
+    }
+```
+
+运行以上代码会引发异常，异常信息如下：
+
+```
+string1
+string2
+Exception in thread "main" java.lang.ClassCastException: class java.lang.Integer cannot be cast to class java.lang.String 
+
+```
+
+显然，List中出现了非字符串类型的元素，导致后面转型成String时出错。
+
+像这种低级的错误能不能在编译期就发现呢？答案是肯定的，泛型可以做到。对以上代码使用泛型进行改造，代码如下：
+
+```java
+    public static void main(String[] args) {
+
+        List<String> list = new ArrayList<String>();
+        list.add("string1");
+        list.add("string2");
+        //下面这句代码如果不注释掉，将会提示编译错误
+        //list.add(1609);
+        
+        for(int i = 0; i < list.size(); i++) {
+            String str = list.get(i);
+            System.out.println(str);
+        }
+        
+    }
+```
+
+运行以上代码，现在错误没了，因为编译时已经发现了错误，而这一切利益于接口List和其实现类ArrayList对泛型的支持，运行结果如下：
+
+```
+string1
+string2
+```
+
+接着演示一个泛型方法的例子，代码如下：
+
+```java
+    public static void main(String[] args) {
+
+        String str = genericMethod("blah");
+        System.out.println("泛型方法返回结果："+str);
+        Integer i = genericMethod(80);
+        System.out.println("泛型方法返回结果："+i);
+
+    }
+
+    public static <T>  T genericMethod(T anyObject) {
+        System.out.println("传入的参数类型为："+anyObject.getClass().getSimpleName());
+        return anyObject;
+    }
+```
+
+以上代码的执行结果是打印以下内容：
+
+```
+传入的参数类型为：String
+泛型方法返回结果：blah
+传入的参数类型为：Integer
+泛型方法返回结果：80
+```
+
+通过这个例子可以看出，通过将某些方法泛型化，容易编写出类型无关的通用模板，可以使用方法专注于实现与类型无关的逻辑。
+
+由以上介绍可知，使用泛型的好处是能在编译期发现类型不匹配错误，能通过实现通用化模板代码大幅减少重复编码。
+
+
+
+####1.5.8 多线程
+
+多线程编程是大型应用程序开发中常用的一项技术手段。Java中多线程编程相当容易实现，首先要明白的是，在以上的代码示例中我们都是通过一个main函数运行的，当运行时，JVM会自动启动一个名称main的线程去运行代码。如果要想创建一个新的线程，可通过以下两种方式实现。
+
+方式一，继承Thread类，Thread类是JDK中表示线程的类。
+
+
+
+在实际应用中，JDK标准类型已经提供了很多创建和使用线程的工具类，它们在java.util.concurrent包中，使用它们能很方便地进行线程编程。
 
 
 ##2. 代码设计原则
@@ -542,6 +798,7 @@ Java生态有大量优秀的开源软件包，其中很多都是经历了多年�
 ###3.6 代码评审常态化
 
 代码评审是保证代码质量的重要手段，应将其作为软件开发的一个重要环节，全面落实。实际执行中，最好制定出代码评审规范，使之标准化，流程化。
+
 
 
 
