@@ -93,6 +93,8 @@ JSR：Java Specification Requests，Java规范请求草案，是由JCP成员向J
 | JSR 356 | Java API for WebSocket 1.1                         |      |
 | JSR 919 | JavaMail 1.6                                       |      |
 | JSR 107 | JCACHE - Java Temporary Caching API                | 内存缓存规范 |
+| JSR 352 | Batch Applications for the Java Platform | 批量处理任务规范 |
+| JSR 305 | Annotations for Software Defect Detection | 软件缺陷检测规范 |
 
 
 表1 一些JSR规范列表
@@ -114,17 +116,17 @@ JSR定义的只是规范，具体实现可以由JVM平台本身或者第三方�
 ###1.5 Java编程指南
 ####1.5.1 包
 
-Java中的包有两种，一种是package包，一种是jar(Java Archives)包。
+Java中的包可以代表两种含义，一种是package包，一种是jar(Java Archives)包。
 
 ##### package
 
-package是Java中组织代码结构的基本单位，它是带有可见性语义的细粒度的类的集合，默认情况下一个类只能被它所在package包内的类访问到。所以一般将一些功能上相关或者结构上相似的类放进同一package中。
+package包是Java中组织代码结构的基本单位，它是带有可见性语义的细粒度的类的集合，默认情况下一个类只能被它所在package包内的类访问到。所以一般将一些功能上相关或者结构上相似的类放进同一package中。
 
 同时package也给类引入了命名空间，每个类都属于唯一一个确定的package。不同package里允许有同名的类。
 
 ##### jar
 
-jar包由一个或者多个package经过的归档压缩形成的包，以便发布、依赖管理。
+jar(Java Archives)包由一个或者多个package经过的归档压缩形成的包，通常以.jar作为文件后缀，以便发布、依赖管理，值得一提的是，由于它们是字节码的集合，因而是可跨平台使用的。
 
 ####1.5.2 接口与类
 作为一门经典的面向对象编程（Object Oriented Programming, OOP）语言，Java严格恪守OOP的信条 - 封装、继承、多态。
@@ -350,10 +352,50 @@ Java语言提供了一套丰富的运算符用于各种类型的数值计算。�
 =, +=, -=, *=, /=等
 ```
 
+- instanceof运算符
+
+这个运算符比较特殊，它用于判断一个对象是否为一个特定类型（接口、类），它的格式为：
+
+```
+( Object reference variable ) instanceof  (Class/Interface type)
+```
+
+如果instanceof运算符左侧变量代表的对象是右侧类（包括其所有子类）或接口的一个对象，那么结果为真。
+
+下面是一个例子：
+
+```java
+String name = "James";
+boolean result = name instanceof String; // 由于 name 是 String 类型，所以返回真
+```
+另外一个例子：
+
+```java
+class Drink {
+}
+class Cola extends Drink {    
+}
+
+public class InstanceofDemo {
+	  public static void main(String[] args) {
+		  Drink drink = new Drink();
+		  Drink drinkCola = new Cola();
+		  Cola cola = new Cola();
+      //		Cola colaDrink = new Drink();编译错误
+		  System.out.println(drink instanceof Drink);//true
+		  System.out.println(drink instanceof Cola);//false
+		  System.out.println(drinkCola instanceof Drink);//true
+		  System.out.println(drinkCola instanceof Cola);//true
+		  System.out.println(cola instanceof Drink);//true
+		  System.out.println(cola instanceof Cola);//true
+	  }
+}
+```
+
 - 其他运算符
 
 ```
-?:, instanceof, ., (), []
+?:, ., (), []
 ```
 
 
@@ -666,7 +708,9 @@ Exception in thread "main" java.lang.ClassCastException: class java.lang.Integer
 
 显然，List中出现了非字符串类型的元素，导致后面转型成String时出错。
 
-像这种低级的错误能不能在编译期就发现呢？答案是肯定的，泛型可以做到。对以上代码使用泛型进行改造，代码如下：
+像这种低级的错误能不能在编译期就发现呢？答案是肯定的，使用泛型可以做到。
+
+对以上代码使用泛型进行改造，代码如下：
 
 ```java
     public static void main(String[] args) {
@@ -727,13 +771,108 @@ string2
 
 ####1.5.8 多线程
 
-多线程编程是大型应用程序开发中常用的一项技术手段。Java中多线程编程相当容易实现，首先要明白的是，在以上的代码示例中我们都是通过一个main函数运行的，当运行时，JVM会自动启动一个名称main的线程去运行代码。如果要想创建一个新的线程，可通过以下两种方式实现。
+以上的代码示例中我们都是通过一个main函数来运行的，当运行时，JVM会自动启动一个名称main的线程去运行代码。这个线程被称为主线程，当然，在编程中也可以启用一个新的线程的执行某些代码，Java中多线程编程相当容易实现，可通过以下两种方式实现。
 
 方式一，继承Thread类，Thread类是JDK中表示线程的类。
 
+```java
+class CounterThread extends Thread {
+    
+    private int counter;
 
+    public CounterThread(String threadName, int counter) {
+        super();
+        this.setName(threadName);
+        this.counter = counter;
+    }
 
-在实际应用中，JDK标准类型已经提供了很多创建和使用线程的工具类，它们在java.util.concurrent包中，使用它们能很方便地进行线程编程。
+    public void run() {
+        for (int i = 0; i < counter; i++) {
+                System.out.println("["+getName()+"] count to " + i + "/" + counter);
+        }
+        System.out.println("["+getName()+"] count to "+counter+" finished");
+    }
+    
+}
+
+public class ThreadDemo {
+    public static void main(String[] args) {
+
+        new CounterThread("counter3Thread",3).start();
+        new CounterThread("counter5Thread",5).start();
+
+    }
+}
+    
+```
+
+运行以上代码，可能会出现以下结果：
+
+```
+[counter3Thread] count to 0/3
+[counter5Thread] count to 0/5
+[counter3Thread] count to 1/3
+[counter3Thread] count to 2/3
+[counter3Thread] count to 3 finished
+[counter5Thread] count to 1/5
+[counter5Thread] count to 2/5
+[counter5Thread] count to 3/5
+[counter5Thread] count to 4/5
+[counter5Thread] count to 5 finished
+```
+
+上面代码通过创建两个CounterThread对象，每个CounterThread对象都是一个线程，通过在其上调用start()方法来启动这个线程分别执行计数打印。需要说明的是，最终输出结果的顺序是不确定的，因为两个线程的执行时机无法预知，但可以确定的是每个线程的输出结果是有序的。
+
+方式二，实现Runnable接口类，并用它直接创建一个Thread类。
+
+```java
+public class CounterRunnable implements Runnable {
+
+  private int counter;
+    
+	public CounterRunnable(int counter) {
+		super();
+		this.counter = counter;
+	}
+
+	@Override
+	public void run() {
+		for(int i = 0; i < counter; i++) {
+			System.out.println(i+"/"+counter);
+		}
+        System.out.println("count to "+counter+" finished");
+	}
+
+}
+
+public class ThreadDemo {
+   public static void main(String[] args) {
+        CounterRunnable counter3Runnable = new CounterRunnable(3);
+        CounterRunnable counter5Runnable = new CounterRunnable(5);
+        new Thread(counter3Runnable).start();
+        new Thread(counter5Runnable).start();
+    }
+}
+```
+
+运行以上代码，可能会出现以下结果（输出结果的顺序是不确定的，原因同方式一中的说明）：
+
+```
+0/3
+0/5
+1/3
+1/5
+2/3
+2/5
+3/5
+count to 3 finished
+4/5
+count to 5 finished
+```
+
+与方式一不同的是，这里使用的继承Runnable接口的实现多线程，接受一个Runnable的实现，并在线程启动后（通过start()方法）执行其中的代码。这种方式是推荐的方式，它可以实现线程与执行逻辑的解耦。
+
+多线程编程是大型应用程序开发中常用的一项技术手段，在实际应用中，JDK标准类型已经提供了很多创建和使用线程的工具类，它们在java.util.concurrent包中，使用它们能很方便地进行多线程编程。同时，需要注意的是，多线程编程是一项很复杂的工作，在使用多线程编程时必须对锁、线程同步、内存屏障、指令重排序等机制有一定了解，否则很容易引发很多意想不到的错误。
 
 
 ##2. 代码设计原则
