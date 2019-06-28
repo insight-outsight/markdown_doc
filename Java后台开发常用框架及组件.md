@@ -1,9 +1,15 @@
+<script type="text/javascript" src="html_resources/jquery-3.3.1.min.js"></script>
+<script type="text/javascript" src="html_resources/2html.js"></script>
+<link rel="stylesheet" type="text/css" href="html_resources/style.css">
+
 <div style="background-color:silver;border:1px solid #000;width:130px;float:right;font-size:20px;font-weight:bold;">内部培训资料</div>
-#Java后台开发常用框架及组件
+
+# Java后台开发常用框架及组件
+
 
 本文将介绍一些在Java后台开发中常用的框架及组件，包含项目管理工具、开发集成框架、ORM框架、缓存访问组件等，使用它们能提高开发效率。此外，这些都是第三方开源软件，有兴趣的话还可以对其源代码进行研究。
 
-##1. 项目管理工具-Maven
+## 1. 项目管理工具 - Maven
 
 maven一个用于项目依赖与构建管理的工具，它能根据配置自动解析并引入相关的依赖jar，支持依赖关系的多层级解析，利用的构建功能，可以很容易完成项目的单元测试、打包、部署等。
 
@@ -62,11 +68,11 @@ maven工具使用一个固定名称的XML配置文件pom.xml来实现配置的�
 定义一个项目在maven资源库的唯一标识，由组名、构件名、版本三者唯一标识。
 
 
-###1.1 依赖管理
+### 1.1 依赖管理
 
 Java后台项目开发中不可避免地会需要引入其它软件包（jar包)，如果没有自动化管理工具，需要手动获取到目标jar文件，并把它拷贝到指定的引用路径中，才能被正常引用，这当然是重复性地繁琐工作。使用maven后，只需要在POM文件使用<dependency>标签声名所要引入jar包坐标（<groupId>、<artifactId>、<version>），就能唯一定位这个包，如果这个在本地不存在 ，将由maven自动下载到本地。至于<groupId>、<artifactId>、<version>是每个maven项目都必须具有的唯一标识，在上面的pom文件中，也定义了自身的坐标。
 
-###1.2 构建管理
+### 1.2 构建管理
 
 maven在项目构建管理方面做得很完善，从maven的视角来看，一个项目的生命周期（lifecycle）可以分别编译、测试、打包、安装、部署五个阶段，这些阶段分别使用compile、test、package、install、deploy命令来执行，它们之间是顺序依赖的关系，即后面的命令执行时会自动执行它之前的所有命令，只有前面的命令执行成功才会接着后续执行。
 
@@ -88,31 +94,36 @@ deploy：将package步骤中生成的jar包部署到maven远程资源库。
 
 此外，利用maven提供的丰富插件（包括很多第三方插件），能够使用简单的命令就可以完成很多复杂的任务，这里就不一一赘述。
 
-### 
 
-##2. 开发集成框架-Spring
 
-Spring可以说是Java生态第一开发框架了，它经历了近20年的发展，已经形成了涵盖系统集成、控制反转（IoC，也叫依赖注入）容器、AOP管理、Web后台开发、应用启动管理、微服务管理等领域的技术生态，它为企业级应用开发提供了完整解决方案。限于篇幅，本文只介绍Spring IoC容器、Spring Boot和Spring MVC框架。
+## 2. 开发集成框架 - Spring
 
-###2.1 Spring IoC 容器
+Spring可以说是Java生态第一开发框架了，它经历了近20年的发展，已经形成了涵盖系统集成、控制反转（IoC，也叫依赖注入）容器、AOP管理、Web后台开发、应用启动管理、微服务管理等领域的技术生态，它为企业级应用开发提供了完整解决方案。限于篇幅，本文只介绍Spring IoC容器、Spring Boot和Spring MVC框架三部分。
+
+### 2.1 Spring IoC 容器
 
 IoC容器是一种实现了对象自动创建并建立相互依赖关系容器，因此它又可以称作依赖注入。IoC容器负责根据配置或者注解定位、解析、实例化应用程序中的用到的对象并建立这些对象间的依赖关系，这样应用程序就无需直接在代码中创建相关的对象，只需直接使用即可。
 
 
 
-###2.2 Spring Boot
+### 2.2 Spring Boot
 
 
 
-###2.3 Spring MVC
+### 2.3 Spring MVC
 
 Spring MVC框架是Web MVC设计模式的Java版本的实现，它提供一种基于HTTP协议请求/响应交互模型的轻量级Web开发架构，它实现了模型（M）、视图（V）、控制器（C）层的职责分离和系统解耦，与Spring框架无耦合，并能无缝集成到Servlet容器中。这种基于请求驱动类型的MVC框架把一些Web通用处理逻辑（如参数接收、验证、结果返回等）在框架层面进行了抽象封装，使得开发者无须对这些Web层的固化流程进行重复性编码，只需遵照它的规则去开发特定业务逻辑，从而简化了Web层的开发。
 
 
-##3. ORM框架
 
 
-##4. 缓存访问
+## 3. ORM框架 - Batis
+
+### 3.1 配置文件方式
+
+### 3.2 配置文件方式
+
+## 4. 缓存访问
 
 
 ##5. 序列化
