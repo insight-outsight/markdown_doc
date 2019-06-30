@@ -1,3 +1,7 @@
+<script type="text/javascript" src="html_resources/jquery-3.3.1.min.js"></script>
+<script type="text/javascript" src="html_resources/2html.js"></script>
+<link rel="stylesheet" type="text/css" href="html_resources/style.css">
+
 <div style="background-color:silver;border:1px solid #000;width:130px;float:right;font-size:20px;font-weight:bold;">内部培训资料</div>
 #Java语言基础、代码设计原则及最佳实践
 

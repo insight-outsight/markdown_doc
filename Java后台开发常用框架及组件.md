@@ -1,9 +1,6 @@
-<script type="text/javascript" src="html_resources/jquery-3.3.1.min.js"></script>
-<script type="text/javascript" src="html_resources/2html.js"></script>
-<link rel="stylesheet" type="text/css" href="html_resources/style.css">
+
 
 <div style="background-color:silver;border:1px solid #000;width:130px;float:right;font-size:20px;font-weight:bold;">内部培训资料</div>
-
 # Java后台开发常用框架及组件
 
 
@@ -118,6 +115,40 @@ Spring MVC框架是Web MVC设计模式的Java版本的实现，它提供一种�
 
 
 ## 3. ORM框架 - Batis
+MyBatis 是管理Java对象与数据库表之间映射关系的优秀的持久层框架。它通过将 Java 接口和 POJOs(Plain Old Java Objects)映射成数据库中的记录的方式来完成对数据库的基本操作，例如CRUD等。MyBatis会自动将接收到的POJOs解析成SQL参数、设置SQL参数、执行SQL语句以及获取结果集并封装成相应对象，使用者不需要对这些过程进行编码，从而大大简化了数据库的访问。MyBatis 支持XML和注解配置方式 ，
+
+如何引用
+一般是要与Spring集成的，以使用mysql数据库为例说明。
+
+<dependency>
+    <groupId>org.mybatis</groupId>
+    <artifactId>mybatis-spring</artifactId>
+    <version>2.0.1</version>
+</dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>5.1.39</version>
+        </dependency>
+
+spring boot
+   <dependency>  
+            <groupId>org.mybatis.spring.boot</groupId>  
+            <artifactId>mybatis-spring-boot-starter</artifactId>  
+            <version>1.3.0</version>  
+    </dependency>
+            <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>5.1.39</version>
+        </dependency>
+
+spring.datasource.url: jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=utf8
+spring.datasource.username: root
+spring.datasource.password: 123456
+spring.datasource.driver-class-name: com.mysql.jdbc.Driver
+
+mybatis generator 
 
 ### 3.1 配置文件方式
 
@@ -125,12 +156,9 @@ Spring MVC框架是Web MVC设计模式的Java版本的实现，它提供一种�
 
 ## 4. 缓存访问
 
-
 ##5. 序列化
 
-
 ##6. 字符串处理
-
 
 ##7. 编解码
 
