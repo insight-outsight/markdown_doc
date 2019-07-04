@@ -112,6 +112,29 @@ IoC容器是一种实现了对象自动创建并建立相互依赖关系容器�
 
 以下是一个采用XML配置进行依赖关系管理的例子：
 
+添加Maven依赖：
+
+```xml
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-beans</artifactId>
+			<version>5.1.3.RELEASE</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+			<version>5.1.3.RELEASE</version>
+		</dependency>
+```
+
+编写代码：
+
 ```java
 package demo.ioc;
 
@@ -218,17 +241,155 @@ public class Launcher {
 
 SpringBoot一个高度集成的Java应用程序开发管理框架，它实现应用配置集中化管理、源码（包括依赖包）打包、启动、以及集成了许多开箱即用的组件（Servlet容器、数据库连接池、缓存、ES等），使得开发过程变得容易。
 
-在上节的例子中，我们在完成IoC依赖注入后使用手动编程的方式获取并使用了helloClient对象，如果借助Spring Boot的自动依赖扫描与注入功能，是可以自动获得一个注入好的helloClient对象的，示例代码如下：
+在上节的例子中，我们在完成IoC依赖注入后使用手动编程的方式获取并使用了helloClient对象，如果借助Spring Boot的注解式自动扫描与依赖注入功能，是可以自动获得一个注入好的helloClient对象的，示例代码如下：
 
+添加Maven依赖：
 
+```xml
+  <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.1.1.RELEASE</version>
+    </parent>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+      <dependencies>  
+```
+
+编写代码：
+
+```java
+
+@Component//访注解表示该类在IoC启动后注册成一个Spring Bean组件
+public class TextHelloImpl implements IHello{
+// ... 同上
+}
+```
+
+```java
+@Component
+public class HelloClient {
+    @Value("1.2")
+    private String version;
+    @Autowired
+    private IHello helloService;
+		// ... 同上
+}
+```
+
+在src/test/java/demo/ioc下创建JUnit测试类，
+
+```java
+package demo.ioc;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
+
+@RunWith(SpringRunner.class)
+@SpringBootTest({"spring.profiles.active=dev"})
+public class SpringBootIoCTest {
+    
+    @Autowired
+    private HelloClient helloClient;
+  
+    @Test
+    public void testAnnotationedIoC(){
+        System.out.println(helloClient.getVersion());;
+        helloClient.textHello();;
+    }
+    
+}
+```
+
+在IDE中类中右键，Run，如果一切顺利，在控制台将看到以下结果：
+
+```
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::        (v2.1.1.RELEASE)
+
+1.2
+say hello by text.
+```
+
+这样，一个简单的程序借助于Spring框架便运行起来了。
 
 ### 2.3 Spring MVC
 
 Spring MVC框架是Web MVC设计模式的Java版本的实现，它提供一种基于HTTP协议请求/响应交互模型的轻量级Web开发架构，它实现了模型（M）、视图（V）、控制器（C）层的职责分离和系统解耦，与Spring框架无耦合，并能无缝集成到Servlet容器中。这种基于请求驱动类型的MVC框架把一些Web通用处理逻辑（如参数接收、验证、结果返回等）在框架层面进行了抽象封装，使得开发者无须对这些Web层的固化流程进行重复性编码，只需遵照它的规则去开发特定业务逻辑，从而简化了Web层的开发。
 
-下面演示如何使用MVC开发基于HTTP 协议的API，
+下面演示如何使用MVC开发基于HTTP 协议的API，首先来编写一个仅仅返回“Hello !”文字的API，
 
+```java
+package controller.test;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class HelloController {
+
+    @RequestMapping(value = "/hello", method = RequestMethod.GET)
+    public String imokay(HttpServletRequest request,HttpServletResponse response) {
+        return "Hello !";
+    }
+
+}
+```
+
+创建Spring Boot程序启动类，
+
+```java
+package controller;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class TemplateApplicationBootStrap {
+
+    public static void main(String[] args) {
+        SpringApplication.run(TemplateApplicationBootStrap.class, args);
+    }
+    
+}
+```
+
+创建Spring Boot配置文件src/main/resources/application.properties并添加
+
+```properties
+server.port = 8445
+```
+
+在TemplateApplicationBootStrap类右键，Run，，如果一切顺利，在控制台将看到以下输出：
+
+```
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::        (v2.1.1.RELEASE)
+```
+
+这时，在浏览器地址栏输入http://localhost:8445/hello.do，即可看到“Hello !”文字。
 
 ## 3. 单元测试框架 - JUnit
 
@@ -263,30 +424,27 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SpringBootTest({"spring.profiles.active=dev"})
 public class SpringBootJUnitTest {
 
-
     @Before
     public void setUp() throws Exception {
         System.out.println("before running test");
     }
-
 
     @After
     public void tearDown() throws Exception {
         System.out.println("after running test");
     }
     
-
     @Test
     public void testIntEq(){
         Assert.assertEquals(129, 128);
-        System.out.println("testIntEq pass");;
+        System.out.println("testIntEq pass");
     }
     
 //    @Ignore("not ready yet")
     @Test
     public void testSameString(){
         Assert.assertSame("这两个字符串不相等","abc","abc");
-        System.out.println("testSameString pass");;
+        System.out.println("testSameString pass");
     }
     
 }
@@ -309,7 +467,7 @@ after running test
 MyBatis 是管理Java对象与数据库表之间映射关系的优秀的持久层框架。它通过将 Java 接口和 POJOs(Plain Old Java Objects)映射成数据库中的记录的方式来完成对数据库的基本操作，例如CRUD等。MyBatis会自动将接收到的POJOs解析成SQL参数、设置SQL参数、执行SQL语句以及获取结果集并封装成相应对象，使用者不需要对这些过程进行编码，从而大大简化了数据库的访问。MyBatis 支持XML和注解配置方式。
 
 ### 4.1 代码自动生成器
-mybatis generator  是一个自动化生成MyBatis所需 Java 接口（Mapper）和 POJOs和工具，如何使用它生成POJOs和Java接口（Mapper）？有命令行手动执行和IDE插件自动生成两种方式，为简便起见，这里介绍与IDE（Eclipse）集成的方式，首先安装插件
+mybatis generator  是一个自动化生成MyBatis所需 Java 接口（Mapper）和 POJOs和工具，如何使用它生成POJOs和Java接口（Mapper）？有命令行手动执行和IDE插件自动生成两种方式，为简便起见，这里介绍与IDE（Eclipse）集成的方式，首先安装插件，
 
 Eclipse菜单栏 -> Help -> Eclipse Marketplace，搜索框输入MyBatis Generator，在列表结果中点击install按钮，直至完成安装，重启Eclipse。
 
@@ -380,6 +538,12 @@ spring.datasource.url: jdbc:mysql://localhost:3306/test?useUnicode=true&characte
 spring.datasource.username: root
 spring.datasource.password: 123456
 spring.datasource.driver-class-name: com.mysql.cj.jdbc.Driver
+spring.datasource.type = com.zaxxer.hikari.HikariDataSource
+spring.datasource.hikari.maximum-pool-size = 300
+spring.datasource.hikari.minimum-idle = 5
+spring.datasource.hikari.connection-timeout = 3000
+spring.datasource.hikari.read-only = false
+spring.datasource.hikari.pool-name = templateHikariCP
 ```
 
 现在就可以编写数据库操作代码了，
@@ -414,17 +578,81 @@ public class UserInfoDOMapperTest {
 
 以上代码中Mapper中的方法是代码生成器自动生成的，无需手工编写，如果想实现其它方法，只需按照规则在Mapper中添加相应的接口注解及SQL即可。
 
-## 5. 缓存访问
+## 5. 缓存访问 - Jedis
 
-##6. 序列化
+在Spring Boot中已经集成好了访问Redis的组件jedis、lettuce，本文以Jedis使用为例进行说明。
 
-在对象传输和存储之前需要对之进行序列化，Java平台的序列化方式有很多，如Native(ObjectInputStream/ObjectOutputStream)、JacksonJSON、Protobuf、Kryo、Fst，它们的使用方式和序列化性能差别很大，具体开发中可根据应用场景选择，这里介绍一种应用广泛的序列化方式——JacksonJSON，它也是Spring框架中默认的序列化工具。
+添加 Maven依赖：
 
-##7. 字符串处理
+```xml
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+            <exclusions>  
+                <exclusion>  
+                    <groupId>io.lettuce</groupId>
+                    <artifactId>lettuce-core</artifactId>
+                </exclusion>  
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+        </dependency>
+```
 
-##8. 编解码
+ 在Maven工程目录/src/main/resources/application.properties加入以下配置：
+
+```properties
+spring.redis.host = localhost
+spring.redis.port = 6379
+spring.redis.database = 0
+
+spring.redis.jedis.pool.max-active = 64
+spring.redis.jedis.pool.max-wait = 1000ms
+spring.redis.jedis.pool.max-idle = 8
+spring.redis.jedis.pool.min-idle = 0
+spring.redis.timeout = 2000ms
+```
+
+编写测试代码：
+
+```java
+import java.util.ArrayList;
+import java.util.List;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.test.context.junit4.SpringRunner;
+
+@RunWith(SpringRunner.class)
+@SpringBootTest({"spring.profiles.active=dev"})
+public class SpringBootJedisTest {
+    
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
+    
+    @Test
+    public void testJedis() throws Exception {
+        stringRedisTemplate.opsForValue().set("j_s_100", "测试js100");
+        List<String> list =new ArrayList<>();
+        list.add("e1");
+        list.add("e2");
+        list.add("e3");
+        stringRedisTemplate.opsForList().leftPushAll("j_s_list100",list);
+        stringRedisTemplate.opsForList().range("j_s_list100",0,-1).forEach(value ->{
+           System.out.println(value);
+        });
+    }
+    
+}
+```
 
 
-##9. 日志组件
 
+##6. 日志组件
 
+这里介绍Java中常用的日志组件slf4j和logback组合，其中slf4j是一个外观模式（Facade）的日志接口，它后面可以对接多种不同的slf4j实现。如果使用logback，在Spring Boot工程中，只需要在src/main/resources下添加
