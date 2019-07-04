@@ -655,4 +655,211 @@ public class SpringBootJedisTest {
 
 ##6. 日志组件
 
-这里介绍Java中常用的日志组件slf4j和logback组合，其中slf4j是一个外观模式（Facade）的日志接口，它后面可以对接多种不同的slf4j实现。如果使用logback，在Spring Boot工程中，只需要在src/main/resources下添加
+这里介绍Java中常用的日志组件slf4j和logback组合，其中slf4j是一套外观模式（Facade）的日志接口，它后面可以对接多种不同的slf4j实现。如果使用logback，在Spring Boot工程中，只需要在src/main/resources下添加一个名为logback-spring.xml的文件，内容如下：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="false" scanPeriod="60 seconds" debug="false">
+
+    <property name="log_history_retain_days" value="100" /><!--定义一个按天分割的日志保留天数-->
+    <property name="log_history_retain_hours" value="240" /><!--定义一个按小时分割的日志保留小时数-->
+    <property name="log_dir" value="/your/log/path/" /><!--存放日志的路径-->
+    <property name="logLevel" value="debug" /><!--日志的默认级别-->
+    <property name="log_pattern" value="%d{MM-dd HH:mm:ss} [%thread] %-5level [%logger.%M %line] - %msg%n%ex" /><!--日志的格式-->
+
+    <appender name="all" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+        <file>${log_dir}/all.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log_dir}/all.log.%d{yyyy-MM-dd}</fileNamePattern>
+            <maxHistory>${log_history_retain_days}</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${log_pattern}</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- encoder 默认配置为PatternLayoutEncoder -->
+        <encoder>
+            <pattern>${log_pattern}</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="debug" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>DEBUG</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <file>${log_dir}/debug.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log_dir}/debug.log.%d{yyyy-MM-dd-HH}</fileNamePattern>
+            <maxHistory>${log_history_retain_hours}</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${log_pattern}</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="info" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <file>${log_dir}/info.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log_dir}/info.log.%d{yyyy-MM-dd}</fileNamePattern>
+            <maxHistory>${log_history_retain_days}</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${log_pattern}</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="warn" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>WARN</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <file>${log_dir}/warn.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log_dir}/warn.log.%d{yyyy-MM-dd}</fileNamePattern>
+            <maxHistory>${log_history_retain_days}</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${log_pattern}</pattern>
+<!--            <immediateFlush>false</immediateFlush> -->
+        </encoder>
+    </appender>
+
+    <appender name="error" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <file>${log_dir}/error.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log_dir}/error.log.%d{yyyy-MM-dd}</fileNamePattern>
+            <maxHistory>${log_history_retain_days}</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${log_pattern}</pattern>
+        </encoder>
+    </appender>
+    <!-- name根据实际情况填写工程最顶层包的名称，以便所有类均可被该日志配置覆盖到，level定义了最低应该
+输出的日志级别，比如设置level=info，那么info级别以下（debug)的日志将不会打印-->
+    <logger name="com.mafengwo.xxx" level="${logLevel}" additivity="false">
+        <appender-ref ref="debug" />
+        <appender-ref ref="info" />
+        <appender-ref ref="warn" />
+        <appender-ref ref="error" />
+    </logger>
+
+    <root level="${logLevel}">
+        <appender-ref ref="all" />
+    </root>
+
+</configuration>
+```
+
+在以上配置中，定义了6个日志输出器，它们种类分两种，一种是RollingFileAppender，一种是ConsoleAppender。RollingFileAppender代表将日志输出到文件，并可根据策略自动切割，而ConsoleAppender是将日志输出的标准输出设备（stdout)。
+
+在logback中将日志按级别主要分别debug, info,warn,error几种，每种日志一般用于输出不同重要程度的信息，分别使用debug(),info(),warn(),error()方法打印。上面配置文件中的配置是设定debug(),info(),warn(),error()方法打印的内容分别保存到debug.log，info.log，warn.log，error.log文件中。实际中一般会根据需要灵活设置日志的最低打印级别，使低于这个级别的日志将不会被打印，即使在程序中调用日志打印方法。一般开发环境设置debug，线上设置info，这样在程序中加入的debug()方法打印代码，在上线后不用清除也不会打印内容。
+
+以下代码演示如何打印日志：
+
+```java
+package com.mafengwo.demo;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
+
+@RunWith(SpringRunner.class)
+@SpringBootTest({"spring.profiles.active=dev"})
+public class SpringBootLogbackTest {
+    
+    private Logger logger = LoggerFactory.getLogger(SpringBootLogbackTest.class);
+    
+    @Test
+    public void testLogback() throws Exception {
+        logger.debug("This is {} level msg","debug");
+        logger.info("This is {} level msg","info");
+        logger.warn("This is {} level msg","warn");
+        logger.error("This is {} level msg","error");
+    }
+    
+}
+```
+
+运行，现在去/your/log/path/下对应的文件看打印的内容吧，是不是debug.log没有相应的内容？把配置文件改成 :
+
+```xml
+    <property name="logLevel" value="info" /><!--日志的默认级别-->
+```
+
+然后重新编译一下（Eclipse 下选择Project -> Clean），再次运行，看看deub.log中是不是没有新的内容了。
+
+日志还有一种重要的应用是用于记录程序中出现各种异常和错误，logback支持打印异常堆栈，以方便定位异常位置，下面代码演示了如何使用打印异常堆栈：
+
+```java
+    @Test
+    public void testExcpetion() throws Exception {
+        try {
+            int m = 0;
+            int n = 5/m;
+        } catch(Exception e) {
+            logger.error("here error",e);
+        }
+    }
+```
+
+运行这个测试方法后，可以在/your/log/path/error.log中看到类似如下异常信息：
+
+```
+07-04 19:45:59 [main] ERROR [com.mafengwo.demo.SpringBootLogbackTest.testExcpetion 31] - here occurs
+java.lang.ArithmeticException: / by zero
+	at com.mafengwo.demo.SpringBootLogbackTest.testExcpetion(SpringBootLogbackTest.java:29)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+	at org.springframework.test.context.junit4.statements.RunBeforeTestExecutionCallbacks.evaluate(RunBeforeTestExecutionCallbacks.java:74)
+	at org.springframework.test.context.junit4.statements.RunAfterTestExecutionCallbacks.evaluate(RunAfterTestExecutionCallbacks.java:84)
+	at org.springframework.test.context.junit4.statements.RunBeforeTestMethodCallbacks.evaluate(RunBeforeTestMethodCallbacks.java:75)
+	at org.springframework.test.context.junit4.statements.RunAfterTestMethodCallbacks.evaluate(RunAfterTestMethodCallbacks.java:86)
+	at org.springframework.test.context.junit4.statements.SpringRepeat.evaluate(SpringRepeat.java:84)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.runChild(SpringJUnit4ClassRunner.java:251)
+	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.runChild(SpringJUnit4ClassRunner.java:97)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.springframework.test.context.junit4.statements.RunBeforeTestClassCallbacks.evaluate(RunBeforeTestClassCallbacks.java:61)
+	at org.springframework.test.context.junit4.statements.RunAfterTestClassCallbacks.evaluate(RunAfterTestClassCallbacks.java:70)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.run(SpringJUnit4ClassRunner.java:190)
+	at org.eclipse.jdt.internal.junit4.runner.JUnit4TestReference.run(JUnit4TestReference.java:89)
+	at org.eclipse.jdt.internal.junit.runner.TestExecution.run(TestExecution.java:41)
+	at org.eclipse.jdt.internal.junit.runner.RemoteTestRunner.runTests(RemoteTestRunner.java:541)
+	at org.eclipse.jdt.internal.junit.runner.RemoteTestRunner.runTests(RemoteTestRunner.java:763)
+	at org.eclipse.jdt.internal.junit.runner.RemoteTestRunner.run(RemoteTestRunner.java:463)
+	at org.eclipse.jdt.internal.junit.runner.RemoteTestRunner.main(RemoteTestRunner.java:209)
+```
+
+ 从打印的异常信息我们可以清楚的看到是哪里出现的问题以及运行过程的方法调用栈信息。
