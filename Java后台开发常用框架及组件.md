@@ -658,10 +658,10 @@ public class HiPageController {
 </dependency>
 ```
 
-下面编写一下测试类src/test/java/demo/SpringBootJUnitTest.java：
+下面编写一下测试类src/test/java/demo/junit/SpringBootJUnitTest.java：
 
 ```java
-package demo;
+package demo.junit;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -673,7 +673,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest({"spring.profiles.active=dev"})
+@SpringBootTest
 public class SpringBootJUnitTest {
 
     @Before
@@ -740,24 +740,24 @@ Eclipse菜单栏 -> Help -> Eclipse Marketplace，搜索框输入MyBatis Generat
 
         <!-- jdbc连接 -->
         <jdbcConnection driverClass="com.mysql.cj.jdbc.Driver"
-                        connectionURL="jdbc:mysql://192.168.1.100:3306/test"
+                        connectionURL="jdbc:mysql://localhost:3306/test"
                         userId="root" password="123456"/><!--mysql jdbc参数，按实际情况更改 -->
 
         <!-- 生成实体类 -->
-        <javaModelGenerator targetPackage="com.hd.agr.service.dao.entity"
-                            targetProject="demo-service"><!--生成的POJOs位置，按实际情况更改 -->
+        <javaModelGenerator targetPackage="demo.dao.entity"
+                            targetProject="first_maven_project"><!--生成的POJOs位置，按实际情况更改 -->
             <property name="enableSubPackages" value="true"/>
             <property name="trimStrings" value="false"/>
          </javaModelGenerator>
 
         <!-- 生成dao接口 -->
-        <javaClientGenerator targetPackage="com.mafengwo.content.demo.api.dao.mapper"
-                             targetProject="cc-server-demo-api" type="ANNOTATEDMAPPER">
+        <javaClientGenerator targetPackage="demo.dao.mapper"
+                             targetProject="first_maven_project" type="ANNOTATEDMAPPER">
             <property name="enableSubPackages" value="true"/><!--生成的mapper位置，按实际情况更改 -->
         </javaClientGenerator>
 
         <!-- 配置需要生成代码的表信息， tableName 和domainObjectName 按实际情况更改,这里不生成帮助类examples-->
-        <table schema="" tableName="user_info" domainObjectName="UserInfoDO"
+        <table schema="" tableName="user_base_info" domainObjectName="UserBaseInfoDO"
                enableCountByExample="false" enableDeleteByExample="false"
                enableSelectByExample="false" enableUpdateByExample="false"/>
     </context>
@@ -779,11 +779,11 @@ Eclipse菜单栏 -> Help -> Eclipse Marketplace，搜索框输入MyBatis Generat
   <dependency>
         <groupId>mysql</groupId>
         <artifactId>mysql-connector-java</artifactId>
-        <version>5.1.39</version>
+        <version>8.0.13</version>
   </dependency>
 ```
 
- 在Maven工程目录/src/main/resources/application.properties加入以下配置：
+ 在Maven工程目录/src/main/resources/application.properties加入以下配置，实际参数值根据实际情况填写：
 
 ```properties
 spring.datasource.url: jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=utf8
@@ -798,34 +798,79 @@ spring.datasource.hikari.read-only = false
 spring.datasource.hikari.pool-name = templateHikariCP
 ```
 
+添加Mapper扫描目录，
+
+```java
+package demo;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+@MapperScan(basePackages = "demo.dao.mapper")
+public class DemoApplicationBootStrap {
+
+    public static void main(String[] args) {
+        SpringApplication.run(DemoApplicationBootStrap.class, args);
+        System.out.println("DemoApplicationBootStrap started");
+    }
+    
+}
+```
+
 现在就可以编写数据库操作代码了，
 
 ```java
-public class UserInfoDOMapperTest {
-    
+package demo.dao;
+
+
+import static org.junit.Assert.assertEquals;
+
+import java.util.Date;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
+
+import demo.dao.entity.UserBaseInfoDO;
+import demo.dao.mapper.UserBaseInfoDOMapper;
+
+
+@RunWith(SpringRunner.class)
+@SpringBootTest
+public class UserDaoTest {
+
     @Autowired
-    private UserDOMapper userDOMapper;
-
-    //按id查询用户
-    public void testSelectById() {
-        UserDO userDO = userDOMapper.selectById(8733L);
-        System.out.println(userDO);
+    private UserBaseInfoDOMapper userBaseInfoDOMapper;
+    
+    @Test
+    public void testSelectByPrimaryKey() {
+        UserBaseInfoDO userBaseInfoDO = userBaseInfoDOMapper.selectByPrimaryKey(6L);
+        System.out.println(userBaseInfoDO.getId());
     }
-  
-  	//插入用户
+
+    @Test
     public void testInsert() {
-        UserDO record = new UserDO();
-        record.setAccount("test002");
+        UserBaseInfoDO record = new UserBaseInfoDO();
+        record.setCreateTime(new Date());
+        record.setGender(1);
         record.setLastModifyTime(new Date());
-        record.setNickname("test002");
-        record.setSex(1);
-        record.setUserId(IDGenerator.next());
-        System.out.println(record);
-        int effectedRow = userDOMapper.insert(record);
-        System.out.println(effectedRow);
-    }
+        record.setNickName("test022-ju");
 
+        record.setUserId(1880002L);
+        record.setUserName("arch022@gmail.com");
+        record.setUserNameType(1);
+        
+        System.out.println(record);
+        int effectedRow = userBaseInfoDOMapper.insert(record);
+        System.out.println(effectedRow);
+        assertEquals(1,effectedRow);
+    }
+    
 }
+
 ```
 
 以上代码中Mapper中的方法是代码生成器自动生成的，无需手工编写，如果想实现其它方法，只需按照规则在Mapper中添加相应的接口注解及SQL即可。
@@ -881,7 +926,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest({"spring.profiles.active=dev"})
+@SpringBootTest
 public class SpringBootJedisTest {
     
     @Autowired
@@ -1006,7 +1051,7 @@ public class SpringBootJedisTest {
     </appender>
     <!-- name根据实际情况填写工程最顶层包的名称，以便所有类均可被该日志配置覆盖到，level定义了最低应该
 输出的日志级别，比如设置level=info，那么info级别以下（debug)的日志将不会打印-->
-    <logger name="com.mafengwo.xxx" level="${logLevel}" additivity="false">
+    <logger name="demo.log" level="${logLevel}" additivity="false">
         <appender-ref ref="debug" />
         <appender-ref ref="info" />
         <appender-ref ref="warn" />
@@ -1027,7 +1072,7 @@ public class SpringBootJedisTest {
 以下代码演示如何打印日志：
 
 ```java
-package com.mafengwo.demo;
+package demo.log;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -1037,7 +1082,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest({"spring.profiles.active=dev"})
+@SpringBootTest
 public class SpringBootLogbackTest {
     
     private Logger logger = LoggerFactory.getLogger(SpringBootLogbackTest.class);
