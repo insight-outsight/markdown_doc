@@ -372,7 +372,7 @@ public class Launcher {
 
 ### 2.2 Spring Boot
 
-SpringBoot一个高度集成的Java应用程序开发管理框架，它实现应用配置集中化管理、源码（包括依赖包）打包、启动、以及集成了许多开箱即用的组件（Servlet容器、数据库连接池、缓存、ES等），使得开发过程变得容易。
+SpringBoot一个高度集成的Java应用程序开发管理框架，它实现了应用配置集中化管理、源码（包括依赖包）打包、启动、以及集成了许多开箱即用的组件（Servlet容器、数据库连接池、缓存、ES等），使得开发过程变得容易。
 
 在上节的例子中，我们在完成IoC依赖注入后使用手动编程的方式获取并使用了helloClient对象，如果借助Spring Boot的注解式自动扫描与依赖注入功能，是可以自动获得一个注入好的helloClient对象的，示例代码如下：
 
@@ -383,14 +383,20 @@ SpringBoot一个高度集成的Java应用程序开发管理框架，它实现应
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>2.1.1.RELEASE</version>
-    </parent>
+  </parent>
 
-    <dependencies>
+  <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
-      <dependencies>  
+    		<dependency>
+    				<groupId>org.springframework.boot</groupId>
+    				<artifactId>spring-boot-starter-test</artifactId>
+    				<version>2.1.1.RELEASE</version>
+    				<scope>test</scope>
+				</dependency>
+  <dependencies>  
 ```
 
 编写代码：
@@ -414,6 +420,26 @@ public class HelloClient {
 }
 ```
 
+在最上层包目录添加一个SpringBoot启动类：
+
+```java
+package demo;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class DemoApplicationBootStrap {
+
+    public static void main(String[] args) {
+        SpringApplication.run(DemoApplicationBootStrap.class, args);
+        System.out.println("DemoApplicationBootStrap started");
+    }
+    
+}
+
+```
+
 在src/test/java/demo/ioc下创建JUnit测试类，
 
 ```java
@@ -426,7 +452,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest({"spring.profiles.active=dev"})
+@SpringBootTest
 public class SpringBootIoCTest {
     
     @Autowired
@@ -463,10 +489,44 @@ say hello by text.
 
 Spring MVC框架是Web MVC设计模式的Java版本的实现，它提供一种基于HTTP协议请求/响应交互模型的轻量级Web开发架构，它实现了模型（M）、视图（V）、控制器（C）层的职责分离和系统解耦，与Spring框架无耦合，并能无缝集成到Servlet容器中。这种基于请求驱动类型的MVC框架把一些Web通用处理逻辑（如参数接收、验证、结果返回等）在框架层面进行了抽象封装，使得开发者无须对这些Web层的固化流程进行重复性编码，只需遵照它的规则去开发特定业务逻辑，从而简化了Web层的开发。
 
-下面演示如何使用MVC开发基于HTTP 协议的API，首先来编写一个仅仅返回“Hello !”文字的API，
+下面演示如何使用MVC开发基于HTTP 协议的API，首先来配置MVC，添加如下配置类：
 
 ```java
-package controller.test;
+package demo;
+
+import org.springframework.boot.web.servlet.ServletRegistrationBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.DispatcherServlet;
+import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
+
+@Configuration
+public class WebMvcCustomConfig extends WebMvcConfigurationSupport {
+
+    @Override
+    public void configurePathMatch(PathMatchConfigurer configurer) {
+        configurer.setUseSuffixPatternMatch(true);
+    }
+
+    @Bean
+    public ServletRegistrationBean<DispatcherServlet> dispatcherRegistration(
+            DispatcherServlet dispatcherServlet) {
+        ServletRegistrationBean<DispatcherServlet> servletRegistration = new ServletRegistrationBean<DispatcherServlet>(
+                dispatcherServlet);
+        servletRegistration.addUrlMappings("*.do");
+        servletRegistration.addUrlMappings("*.html");
+        return servletRegistration;
+    }
+
+    
+}
+```
+
+然后编写一个仅仅返回“Hello !”文字的API，
+
+```java
+package demo.controller;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -479,30 +539,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class HelloController {
 
     @RequestMapping(value = "/hello", method = RequestMethod.GET)
-    public String imokay(HttpServletRequest request,HttpServletResponse response) {
+    public String hello(HttpServletRequest request,HttpServletResponse response) {
         return "Hello !";
     }
 
 }
 ```
 
-创建Spring Boot程序启动类，
 
-```java
-package controller;
-
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-
-@SpringBootApplication
-public class TemplateApplicationBootStrap {
-
-    public static void main(String[] args) {
-        SpringApplication.run(TemplateApplicationBootStrap.class, args);
-    }
-    
-}
-```
 
 创建Spring Boot配置文件src/main/resources/application.properties并添加
 
@@ -552,7 +596,7 @@ spring.thymeleaf.excluded-view-names=
 # 模版模式
 spring.thymeleaf.mode=HTML5 
 # 模版存放路径
-spring.thymeleaf.prefix=classpath:/templates/ 
+#spring.thymeleaf.prefix=classpath:/templates/ 
 # 模版后缀
 spring.thymeleaf.suffix=.html
 ```
@@ -560,7 +604,7 @@ spring.thymeleaf.suffix=.html
 编写Controller：
 
 ```java
-package controller.test;
+package demo.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
