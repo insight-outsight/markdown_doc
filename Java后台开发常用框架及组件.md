@@ -4,38 +4,162 @@
 # Java后台开发常用框架及组件
 
 
-本文将介绍一些在Java后台开发中常用的框架及组件，包含项目管理工具、开发集成框架、ORM框架、缓存访问组件等，使用它们能提高开发效率。此外，这些都是第三方开源软件，有兴趣的话还可以对其源代码进行研究。
+本文将介绍一些在Java后台开发中常用的框架及组件，包含项目管理工具、开发集成框架、ORM框架、缓存访问组件等，使用它们能避免重复性劳动、减少编码量，从而提高开发效率。此外，这些都是第三方开源软件，有兴趣的话还可以对其源代码进行研究。
 
 ## 1. 项目管理工具 - Maven
 
-maven一个用于项目依赖与构建管理的工具，它能根据配置自动解析并引入相关的依赖jar，支持依赖关系的多层级解析，利用的构建功能，可以很容易完成项目的单元测试、打包、部署等。
+Maven一个用于项目依赖管理与构建管理的工具，它能根据配置自动解析并引入相关的依赖jar，支持依赖关系的多层级解析，而且利用的其构建功能，可以很容易完成项目的单元测试、打包、部署等。
 
-一个maven项目的典型结构为：
+### 1.1 安装
 
-```java
-|____src                 //源代码根目录
-|  |____main             //主体功能代码及资源根目录
-|  |  |____resources     //资源文件根目录
-|  |  |____java          //java代码根目录
-|  |____test             //测试代码及资源根目录
-|  |  |____resources     //测试资源文件根目录
-|  |  |____java          //测试java代码根目录
-|____target              //编译后的类及资源文件根目录
-|  |____test-classes     //编译后的测试类及资源文件根目录
-|  |____classes          //编译后的主体功能类及资源文件根目录
-|____pom.xml             //工程管理文件
+手工下载安装并比较繁琐，目前主流IDE如Eclipse、IDEA都内置了Maven，无须关注安装，只须简单配置即可使用。
+
+配置Maven 只须新建文件~/.m2/settings.xml，下面介绍相关术语：
+
+- <font face="黑体" size="4">Maven配置文件</font>
+Maven配置文件名为settings.xml，负责Maven全局配置，主要内容如下：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
+  
+  <localRepository>~/.m2/repository</localRepository>
+
+  <servers>
+
+    <server>
+      <id>mfw-public</id>
+      <username>username</username>
+      <password>password</password>
+    </server>
+    <server>
+      <id>mfw-releases</id>
+      <username>username</username>
+      <password>password</password>
+    </server>
+    <server>
+      <id>mfw-snapshots</id>
+      <username>username</username>
+      <password>password</password>
+    </server>
+
+  </servers>
+
+  <mirrors>
+
+    <mirror>
+      <id>company-public-central</id>
+      <name>Mirror of central</name>
+      <url>https://nexus.mfwdev.com/repository/maven-public/</url>
+      <mirrorOf>central</mirrorOf>
+    </mirror>
+
+  </mirrors>
+
+  <profiles>
+
+    <profile>
+      <id>jdk-1.6</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+        <jdk>1.6</jdk>
+      </activation>
+      <properties>
+        <maven.compiler.source>1.6</maven.compiler.source>
+        <maven.compiler.target>1.6</maven.compiler.target>
+        <maven.compiler.compilerVersion>1.6</maven.compiler.compilerVersion>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>mfw-profile</id>
+      <repositories>
+        <repository>
+          <id>mfw-snapshots</id>
+          <url>https://nexus.mfwdev.com/repository/xxx-snapshots/</url>
+          <releases>
+            <enabled>false</enabled>
+            <updatePolicy>interval:300</updatePolicy>
+            <checksumPolicy>warn</checksumPolicy>
+          </releases>
+          <snapshots>
+            <enabled>true</enabled>
+            <updatePolicy>interval:300</updatePolicy>
+            <checksumPolicy>warn</checksumPolicy>
+          </snapshots>
+        </repository>
+
+        <repository>
+          <id>mfw-releases</id>
+          <url>https://nexus.mfwdev.com/repository/xxx-releases/</url>
+          <releases>
+            <enabled>true</enabled>
+            <updatePolicy>interval:300</updatePolicy>
+            <checksumPolicy>warn</checksumPolicy>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
+            <updatePolicy>interval:300</updatePolicy>
+            <checksumPolicy>warn</checksumPolicy>
+          </snapshots>
+        </repository>
+
+        <repository>
+    		  <id>mfw-public</id>
+    		  <name>Repository for MFW maven</name>
+    		  <url>https://nexus.mfwdev.com/repository/maven-public/</url>
+    		  <layout>default</layout>
+    		  <releases>
+    			  <enabled>true</enabled>
+    			  <updatePolicy>interval:1440</updatePolicy>
+    			  <checksumPolicy>warn</checksumPolicy>
+    		  </releases>
+    		  <snapshots>
+    			  <enabled>true</enabled>
+    			  <updatePolicy>interval:1440</updatePolicy>
+    			  <checksumPolicy>warn</checksumPolicy>
+    		  </snapshots>
+    		</repository>
+      </repositories>
+    </profile>
+  </profiles>
+
+  <activeProfiles>
+    <activeProfile>mfw-profile</activeProfile>
+  </activeProfiles>
+
+</settings>
+
 ```
 
+说明：
+
+1.~/.m2/repository目录表示Maven本地资源库位置。
+2.实际使用中将xxx换成相应的业务部门对应的资源库前缀，例如content，如没有，向Maven仓库管理部门申请获得。
+3.username和password分别为访问Maven远程资源仓库的用户名和密码，可向Maven仓库管理部门申请获得。
 
 
-在介绍maven工作原理之间，先了解几个maven术语：
+- <font face="黑体" size="4">Maven远程资源库</font>
+
+一个远程集中式的软件仓库，所有使用Maven进行管理的项目对外发布后，都存放于此。它分为三种，官方仓库（包括各种官网镜像）、私有仓库。
+
+- <font face="黑体" size="4">Maven本地资源库</font>
+
+当使用maven进行项目开发时，Maven会把用到的远程资源库中的软件包自动下载到本地一个文件夹，例如~/.m2/repository，以便下次直接使用，这个目录就叫做本地资源库。
+
+- <font face="黑体" size="4">项目坐标</font>
+
+定义一个项目在Maven资源库的唯一标识，由groupId（组名）、artifactId（构件名）、version（版本）三者唯一标识。
+
 
 - <font face="黑体" size="4">POM文件</font>
 
-maven工具使用一个固定名称的XML配置文件pom.xml来实现配置的集中管理，这个文件叫做 POM（Project Object Model）文件，以下就是一个简单的POM文件。
+Maven使用一个固定名称的XML配置文件pom.xml来实现配置的集中管理，这个文件叫做 POM（Project Object Model）文件，以下就是一个简单的POM文件。
 
 ```xml
-
 <project xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -54,20 +178,34 @@ maven工具使用一个固定名称的XML配置文件pom.xml来实现配置的�
     </dependencies>
 </project>
 ```
-- <font face="黑体" size="4">maven远程资源库</font>
-
-一个远程集中式的软件仓库，所有使用maven进行管理的项目对外发布后，都存放于此。它分为三种，官方仓库（包括各种官网镜像）、私有仓库。
-- <font face="黑体" size="4">maven本地资源库</font>
-
-当使用maven进行项目开发时，maven会把用到的远程资源库中的软件包自动下载到本地一个文件夹，例如/home/test1/.m2/repository，以便下次直接使用，这个目录就叫做本地资源库。
-- <font face="黑体" size="4">项目坐标</font>
-
-定义一个项目在maven资源库的唯一标识，由组名、构件名、版本三者唯一标识。
 
 
-### 1.1 依赖管理
 
-Java后台项目开发中不可避免地会需要引入其它软件包（jar包)，如果没有自动化管理工具，需要手动获取到目标jar文件，并把它拷贝到指定的引用路径中，才能被正常引用，这当然是重复性地繁琐工作。使用maven后，只需要在在工程根目录添加POM文件，并在其中使用<dependency>标签声名所要引入jar包坐标（<groupId>、<artifactId>、<version>），就能唯一定位这个包，例如
+
+### 1.2 工程结构
+一个maven项目的典型结构为：
+
+```java
+|____src                 //源代码根目录
+|  |____main             //主体功能代码及资源根目录
+|  |  |____resources     //资源文件根目录
+|  |  |____java          //java代码根目录
+|  |____test             //测试代码及资源根目录
+|  |  |____resources     //测试资源文件根目录
+|  |  |____java          //测试java代码根目录
+|____target              //编译后的类及资源文件根目录
+|  |____test-classes     //编译后的测试类及资源文件根目录
+|  |____classes          //编译后的主体功能类及资源文件根目录
+|____pom.xml             //工程管理文件
+```
+
+
+
+### 1.3 核心功能
+
+#### 1.3.1 依赖管理
+
+Java后台项目开发中不可避免地会需要引入其它软件包（jar包)，如果没有自动化管理工具，需要手动获取到目标jar文件，并把它拷贝到指定的引用路径中，才能被正常引用，这当然是重复性地繁琐工作。使用Maven后，只需要在在工程根目录添加POM文件，并在其中使用<dependency>标签声名所要引入jar包坐标（<groupId>、<artifactId>、<version>），就能唯一定位这个包，例如
 
 ```xml
     <dependency>
@@ -78,7 +216,7 @@ Java后台项目开发中不可避免地会需要引入其它软件包（jar包)
 ```
 如果这个在本地不存在 ，将由maven自动下载到本地。至于<groupId>、<artifactId>、<version>是每个maven项目都必须具有的唯一标识，在上面的pom文件中，也定义了自身的坐标。
 
-### 1.2 构建管理
+#### 1.3.2 构建管理
 
 maven在项目构建管理方面做得很完善，从maven的视角来看，一个项目的生命周期（lifecycle）可以分别编译、测试、打包、安装、部署五个阶段，这些阶段分别使用compile、test、package、install、deploy命令来执行，它们之间是顺序依赖的关系，即后面的命令执行时会自动执行它之前的所有命令，只有前面的命令执行成功才会接着后续执行。
 
@@ -104,7 +242,7 @@ deploy：将package步骤中生成的jar包部署到maven远程资源库。
 
 ## 2. 开发集成框架 - Spring
 
-Spring可以说是Java生态第一开发框架了，它经历了近20年的发展，已经形成了涵盖系统集成、控制反转（IoC，也叫依赖注入）容器、AOP管理、Web后台开发、应用启动管理、微服务管理等领域的技术生态，它为企业级应用开发提供了完整解决方案。限于篇幅，本文只介绍Spring IoC容器、Spring Boot和Spring MVC框架三部分。
+Spring可以说是Java生态第一开发框架了，它经历了近20年的发展，已经形成了涵盖系统集成、控制反转（IoC，也叫依赖注入）容器、AOP管理、Web API、Web Pages、批处理作业、应用启动管理、微服务管理等领域的技术生态，它为企业级应用开发提供了完整解决方案。限于篇幅，本文只介绍Spring IoC容器、Spring Boot和Spring MVC框架三部分。
 
 ### 2.1 Spring IoC 容器
 
@@ -120,11 +258,6 @@ IoC容器是一种实现了对象自动创建并建立相互依赖关系容器�
 			<artifactId>junit</artifactId>
 			<version>4.12</version>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-beans</artifactId>
-			<version>5.1.3.RELEASE</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
@@ -172,7 +305,7 @@ public class HelloClient {
         helloService.sayHello();
     }
 
-   /**setter和getter方法是必不可少的，Spring IoC使用它们对属性进行访问*/
+   /**setter和getter方法是必不可少的，Spring IoC使用它们对属性字段进行访问*/
     public String getVersion() {
         return version;
     }
@@ -201,9 +334,9 @@ public class HelloClient {
 	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.1.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd">
 	
-	<bean id="textHelloService" class="org.springlearning.ioc.TextHelloImpl"/>
+	<bean id="textHelloService" class="demo.ioc.TextHelloImpl"/>
 
-	<bean id="helloClient" class="org.springlearning.ioc.HelloClient">
+	<bean id="helloClient" class="demo.ioc.HelloClient">
 		<property name="version" value="1.4" />
 		<property name="helloService" ref="textHelloService" />
 	</bean>
@@ -377,7 +510,7 @@ public class TemplateApplicationBootStrap {
 server.port = 8445
 ```
 
-在TemplateApplicationBootStrap类右键，Run，，如果一切顺利，在控制台将看到以下输出：
+在TemplateApplicationBootStrap类右键，Run，如果一切顺利，在控制台将看到以下输出：
 
 ```
   .   ____          _            __ _ _
@@ -390,6 +523,81 @@ server.port = 8445
 ```
 
 这时，在浏览器地址栏输入http://localhost:8445/hello.do，即可看到“Hello !”文字。
+
+Spring MVC在开发Web Pages应用上也非常方便，它能集成JSP（已过时，不推荐使用）、FreeMarker、Thymeleaf等页面模板技术。下面看一个使用Thymeleaf开发Web Pages的示例：
+
+Maven添加以下依赖：
+
+```
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+```
+
+在application.properties添加以下配置：
+
+```
+
+# 是否启用缓存，建议生产环境开启
+spring.thymeleaf.cache=false 
+spring.thymeleaf.check-template-location=true 
+# HTTP Header Content-Type 值
+spring.thymeleaf.content-type=text/html 
+spring.thymeleaf.enabled=true 
+# 模版编码
+spring.thymeleaf.encoding=UTF-8 
+# 应该从解析中排除的视图名称列表（用逗号分隔）
+spring.thymeleaf.excluded-view-names= 
+# 模版模式
+spring.thymeleaf.mode=HTML5 
+# 模版存放路径
+spring.thymeleaf.prefix=classpath:/templates/ 
+# 模版后缀
+spring.thymeleaf.suffix=.html
+```
+
+编写Controller：
+
+```java
+package controller.test;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+@Controller
+@RequestMapping("/thymeleaf")
+public class HiPageController {
+
+    @GetMapping(value = "hiPage")
+    public String hi(Model model){
+        model.addAttribute("userName","xiaoming");
+        return "hiPage";
+    }
+ 
+
+}
+```
+
+编写页面src/main/resources/templates/hiPage.html：
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>SpringBoot Thymeleaf模版渲染</title>
+</head>
+<body>
+    <h1>Hi,</h1>
+    <p style="background-color:#33D589" th:text="'用户名称：' + ${userName}"/>
+</body>
+</html>
+```
+
+在TemplateApplicationBootStrap类右键，Run，这时，在浏览器地址栏输入http://localhost:8445/thymeleaf/hiPage.html，即看到一个欢迎页面。
 
 ## 3. 单元测试框架 - JUnit
 
@@ -578,9 +786,9 @@ public class UserInfoDOMapperTest {
 
 以上代码中Mapper中的方法是代码生成器自动生成的，无需手工编写，如果想实现其它方法，只需按照规则在Mapper中添加相应的接口注解及SQL即可。
 
-## 5. 缓存访问 - Jedis
+## 5. 缓存访问组件 - Jedis
 
-在Spring Boot中已经集成好了访问Redis的组件jedis、lettuce，本文以Jedis使用为例进行说明。
+在Spring Boot中已经集成好了访问Redis的组件Jedis、Lettuce，本文以Jedis使用为例进行说明。
 
 添加 Maven依赖：
 
@@ -655,7 +863,7 @@ public class SpringBootJedisTest {
 
 ##6. 日志组件
 
-这里介绍Java中常用的日志组件slf4j和logback组合，其中slf4j是一套外观模式（Facade）的日志接口，它后面可以对接多种不同的slf4j实现。如果使用logback，在Spring Boot工程中，只需要在src/main/resources下添加一个名为logback-spring.xml的文件，内容如下：
+日志是程序运行状态的记录，它能为开发者记录关键点运行时数据和异常堆栈信息，这对于开发者来说往往是至关重要的信息。这里介绍Java中常用的日志组件slf4j和logback组合，其中slf4j是一套外观模式（Facade）的日志接口，它后面可以对接多种不同的slf4j实现。如果使用logback，在Spring Boot工程中，只需要在src/main/resources下添加一个名为logback-spring.xml的文件，内容如下：
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
